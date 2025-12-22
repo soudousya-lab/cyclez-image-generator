@@ -163,6 +163,7 @@ def convert_prompt_with_claude(generation_input: Dict[str, Any]) -> str:
 
     staff_name = generation_input.get("staff")
     client_type = generation_input.get("client")
+    client_count = generation_input.get("client_count", 1)
     client_desc = CLIENT_DESCRIPTIONS.get(client_type, "") if client_type else ""
 
     mood = generation_input.get("mood", "ニュートラル")
@@ -215,7 +216,10 @@ cycleZというスポーツバイクショップのマーケティング画像�
         user_message += f"- スタッフ: {staff_name}（参照画像のスタッフを登場させる。特徴を維持すること）\n"
 
     if client_desc:
-        user_message += f"- お客様: {client_desc}\n"
+        if client_count == 1:
+            user_message += f"- お客様: {client_desc} （1人）\n"
+        else:
+            user_message += f"- お客様: {client_desc} を {client_count}人 登場させる（同じタイプで複数人）\n"
 
     if not staff_name and not client_desc:
         user_message += "- 人物なし（店舗・バイクのみ）\n"
@@ -267,6 +271,7 @@ def build_simple_prompt(generation_input: Dict[str, Any]) -> str:
 
     staff_name = generation_input.get("staff")
     client_type = generation_input.get("client")
+    client_count = generation_input.get("client_count", 1)
     client_desc = CLIENT_DESCRIPTIONS.get(client_type, "") if client_type else ""
 
     mood = generation_input.get("mood", "ニュートラル")
@@ -285,7 +290,10 @@ def build_simple_prompt(generation_input: Dict[str, Any]) -> str:
         parts.append(f"The staff member from the reference image is present, maintaining their exact appearance.")
 
     if client_desc:
-        parts.append(f"A customer: {client_desc}.")
+        if client_count == 1:
+            parts.append(f"A customer: {client_desc}.")
+        else:
+            parts.append(f"{client_count} customers: {client_desc} (group of {client_count} people of similar type).")
 
     # アクション
     parts.append(f"Scene: {situation_info['action']}.")

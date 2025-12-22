@@ -60,9 +60,9 @@ def generate_image_with_gemini(
         # 参照画像の説明付きプロンプトを構築
         image_instructions = []
 
-        # 背景画像とトレーナー画像を分類
+        # 背景画像とスタッフ画像を分類
         bg_images = [img for img in reference_images if img["type"] == "background"]
-        trainer_images = [img for img in reference_images if img["type"] == "trainer"]
+        staff_images = [img for img in reference_images if img["type"] in ["staff", "trainer"]]
 
         if bg_images:
             image_instructions.append(
@@ -70,11 +70,11 @@ def generate_image_with_gemini(
                 "Maintain the architectural features, lighting, colors, and atmosphere of this space precisely."
             )
 
-        if trainer_images:
+        if staff_images:
             image_instructions.append(
-                "CRITICAL: The trainer in the generated image MUST look EXACTLY like the person in the reference photo(s). "
+                "CRITICAL: The staff member in the generated image MUST look EXACTLY like the person in the reference photo(s). "
                 "Maintain their exact facial features, face shape, hairstyle, skin tone, and overall appearance. "
-                "This is essential - the generated trainer must be recognizable as the same person."
+                "This is essential - the generated staff must be recognizable as the same person."
             )
 
         # プロンプトに日本人指定を追加
@@ -92,8 +92,8 @@ def generate_image_with_gemini(
         # テキストプロンプトを追加
         contents.append(full_prompt)
 
-        # 参照画像を追加（トレーナーを先に、背景を後に）
-        for img_info in trainer_images + bg_images:
+        # 参照画像を追加（スタッフを先に、背景を後に）
+        for img_info in staff_images + bg_images:
             image_path = img_info["path"]
             if isinstance(image_path, str):
                 image_path = Path(image_path)
@@ -115,9 +115,9 @@ def generate_image_with_gemini(
                 contents.append(types.Part.from_bytes(data=image_bytes, mime_type=mime_type))
                 print(f"   📎 参照画像追加: {img_info['type']} - {image_path.name}")
 
-        print(f"📤 Nano Banana Pro (gemini-3-pro-image-preview) にリクエスト送信中...")
+        print(f"📤 Gemini Pro (gemini-3-pro-image-preview) にリクエスト送信中...")
         print(f"   アスペクト比: {aspect_ratio}")
-        print(f"   参照画像数: {len(trainer_images + bg_images)}")
+        print(f"   参照画像数: {len(staff_images + bg_images)}")
 
         # Nano Banana Pro で画像生成
         response = client.models.generate_content(

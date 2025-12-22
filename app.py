@@ -23,49 +23,339 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# カスタムCSS（ブランドカラー適用：赤、黒、白、差し色で黄色）
+# カスタムCSS（マジンガーZ / 光子力研究所風デザイン）
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap');
+
     .stApp {
-        background-color: #f5f5f5;
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
     }
+
+    /* 全体のテキストを白色に */
+    .stApp, .stApp p, .stApp span, .stApp label, .stApp div {
+        color: #ffffff !important;
+    }
+
+    /* Streamlitのマークダウンテキスト */
+    .stMarkdown, .stMarkdown p, .stMarkdown span {
+        color: #ffffff !important;
+    }
+
+    /* ラベルテキスト */
+    .stSelectbox label, .stTextArea label, .stCheckbox label,
+    .stSlider label, .stMultiSelect label, .stTextInput label {
+        color: #00aaff !important;
+        font-weight: 600;
+    }
+
+    /* ヘルプテキスト */
+    .stTooltipIcon {
+        color: #888 !important;
+    }
+
+    /* セレクトボックスの選択テキスト */
+    .stSelectbox [data-baseweb="select"] span {
+        color: #ffffff !important;
+    }
+
+    /* チェックボックスのラベル */
+    .stCheckbox span {
+        color: #ffffff !important;
+    }
+
+    /* スライダーのラベル */
+    .stSlider [data-testid="stTickBarMin"],
+    .stSlider [data-testid="stTickBarMax"] {
+        color: #ffffff !important;
+    }
+
+    /* メインヘッダー - 光子力研究所風 */
     .main-header {
-        color: #1a1a1a;
-        font-size: 2.5rem;
-        font-weight: bold;
+        font-family: 'Orbitron', 'Noto Sans JP', sans-serif;
+        color: #00ff88;
+        font-size: 2.8rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        text-shadow:
+            0 0 10px #00ff88,
+            0 0 20px #00ff88,
+            0 0 40px #00ff88,
+            0 0 80px #00aa55;
         margin-bottom: 0.5rem;
+        padding: 1rem 0;
+        border-bottom: 3px solid #00ff88;
+        position: relative;
     }
+
+    .main-header::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -3px;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #00ff88, transparent);
+        animation: scan 2s linear infinite;
+    }
+
+    @keyframes scan {
+        0% { opacity: 0.3; }
+        50% { opacity: 1; }
+        100% { opacity: 0.3; }
+    }
+
     .sub-header {
-        color: #666;
+        font-family: 'Noto Sans JP', sans-serif;
+        color: #888;
         font-size: 1rem;
         margin-bottom: 2rem;
+        letter-spacing: 2px;
     }
-    .stButton>button {
-        background-color: #e63232;
-        color: white;
-        font-weight: bold;
-        border: none;
-        padding: 0.75rem 2rem;
-        font-size: 1.1rem;
+
+    /* セクションヘッダー */
+    .section-header {
+        font-family: 'Orbitron', sans-serif;
+        color: #ff3366;
+        font-size: 1.2rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        border-left: 4px solid #ff3366;
+        padding-left: 12px;
+        margin: 1.5rem 0 1rem 0;
+        text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
     }
-    .stButton>button:hover {
-        background-color: #cc2828;
-    }
-    .info-box {
-        background-color: #1a1a1a;
-        color: white;
-        padding: 1rem;
-        border-radius: 8px;
+
+    /* パネルスタイル */
+    .control-panel {
+        background: linear-gradient(180deg, rgba(0,255,136,0.1) 0%, rgba(0,0,0,0.8) 100%);
+        border: 1px solid #00ff88;
+        border-radius: 0;
+        padding: 1.5rem;
         margin: 1rem 0;
+        position: relative;
+        clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
     }
+
+    .control-panel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #00ff88, #00aaff, #00ff88);
+        animation: borderGlow 3s linear infinite;
+    }
+
+    @keyframes borderGlow {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+    }
+
+    /* メインボタン - パイルダーオン風 */
+    .stButton>button {
+        font-family: 'Orbitron', sans-serif;
+        background: linear-gradient(180deg, #ff3366 0%, #cc0033 50%, #990022 100%);
+        color: #fff;
+        font-weight: 900;
+        font-size: 1.2rem;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        border: 2px solid #ff3366;
+        padding: 1rem 2rem;
+        clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        box-shadow:
+            0 0 20px rgba(255, 51, 102, 0.5),
+            inset 0 1px 0 rgba(255,255,255,0.2);
+        transition: all 0.3s ease;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .stButton>button:hover {
+        background: linear-gradient(180deg, #ff5588 0%, #ff3366 50%, #cc0033 100%);
+        box-shadow:
+            0 0 30px rgba(255, 51, 102, 0.8),
+            0 0 60px rgba(255, 51, 102, 0.4),
+            inset 0 1px 0 rgba(255,255,255,0.3);
+        transform: scale(1.02);
+    }
+
+    .stButton>button:active {
+        transform: scale(0.98);
+    }
+
+    /* インフォボックス - 研究所コンソール風 */
+    .info-box {
+        background: linear-gradient(180deg, rgba(0,170,255,0.15) 0%, rgba(0,0,0,0.9) 100%);
+        color: #00aaff;
+        padding: 1.5rem;
+        border: 1px solid #00aaff;
+        border-radius: 0;
+        margin: 1rem 0;
+        font-family: 'Orbitron', monospace;
+        position: relative;
+        clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    }
+
+    .info-box::after {
+        content: '◆ DATA';
+        position: absolute;
+        top: -10px;
+        left: 15px;
+        background: #0a0a0a;
+        padding: 0 8px;
+        font-size: 0.7rem;
+        color: #00aaff;
+        letter-spacing: 2px;
+    }
+
+    /* 成功ボックス - 光子力エネルギー風 */
     .success-box {
-        background-color: #28a745;
-        color: white;
-        padding: 1rem;
-        border-radius: 8px;
+        background: linear-gradient(180deg, rgba(0,255,136,0.2) 0%, rgba(0,0,0,0.9) 100%);
+        color: #00ff88;
+        padding: 1.5rem;
+        border: 2px solid #00ff88;
+        border-radius: 0;
+        font-family: 'Orbitron', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        animation: successPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes successPulse {
+        0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.3); }
+        50% { box-shadow: 0 0 40px rgba(0,255,136,0.6); }
+    }
+
+    /* サイドバー */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 100%);
+        border-right: 2px solid #00ff88;
+    }
+
+    [data-testid="stSidebar"] .stMarkdown h1,
+    [data-testid="stSidebar"] .stMarkdown h2,
+    [data-testid="stSidebar"] .stMarkdown h3 {
+        font-family: 'Orbitron', sans-serif;
+        color: #00ff88;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    /* サイドバーのテキスト全般 */
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] div {
+        color: #ffffff !important;
+    }
+
+    [data-testid="stSidebar"] .stSelectbox label,
+    [data-testid="stSidebar"] .stCheckbox label,
+    [data-testid="stSidebar"] .stMultiSelect label {
+        color: #00aaff !important;
+    }
+
+    /* セレクトボックス */
+    .stSelectbox > div > div {
+        background: rgba(0,0,0,0.8);
+        border: 1px solid #00aaff;
+        color: #00aaff;
+    }
+
+    /* テキストエリア */
+    .stTextArea textarea {
+        background: rgba(0,0,0,0.8);
+        border: 1px solid #00aaff;
+        color: #00ff88;
+        font-family: 'Noto Sans JP', monospace;
+    }
+
+    /* エクスパンダー */
+    .streamlit-expanderHeader {
+        font-family: 'Orbitron', sans-serif;
+        background: rgba(0,170,255,0.1);
+        border: 1px solid #00aaff;
+        color: #00aaff;
+    }
+
+    /* ディバイダー */
+    hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #00ff88, #00aaff, #ff3366, transparent);
+    }
+
+    /* スピナー */
+    .stSpinner > div {
+        border-color: #00ff88 transparent transparent transparent;
+    }
+
+    /* 警告・エラー */
+    .stAlert {
+        border-radius: 0;
+        border-left: 4px solid;
+    }
+
+    /* カスタムアイコンスタイル */
+    .icon-wrapper {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+
+    .icon-wrapper svg {
+        width: 24px;
+        height: 24px;
+        fill: currentColor;
+    }
+
+    /* グリッドオーバーレイ */
+    .grid-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        background-image:
+            linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        z-index: 0;
     }
 </style>
+<div class="grid-overlay"></div>
 """, unsafe_allow_html=True)
+
+# SVGアイコン定義（React Iconsスタイル）
+ICONS = {
+    "bike": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="17" r="3"/><circle cx="19" cy="17" r="3"/><path d="M12 17V5l4 4M5 17l3-6h8l3 6"/></svg>''',
+    "settings": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>''',
+    "store": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>''',
+    "user": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>''',
+    "palette": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.75-.67 1.75-1.5 0-.39-.15-.74-.39-1.02-.24-.28-.39-.63-.39-1.02 0-.83.67-1.5 1.5-1.5H16c3.31 0 6-2.69 6-6 0-4.96-4.49-9-10-9z"/></svg>''',
+    "document": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>''',
+    "wrench": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>''',
+    "zap": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/></svg>''',
+    "download": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>''',
+    "message": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>''',
+    "check": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>''',
+    "alert": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>''',
+    "edit": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>''',
+}
+
+def icon(name: str, color: str = "#00ff88") -> str:
+    """SVGアイコンをHTMLとして返す"""
+    svg = ICONS.get(name, ICONS["zap"])
+    return f'<span class="icon-wrapper" style="color: {color}">{svg}</span>'
 
 # 定数定義
 STAFF = {
@@ -138,9 +428,18 @@ def load_image_as_base64(image_path: Path) -> str:
 
 
 def main():
-    # ヘッダー
-    st.markdown('<p class="main-header">🚴 cycleZ 画像生成ツール</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">簡単な日本語入力から、ブランドに合った画像を生成します</p>', unsafe_allow_html=True)
+    # ヘッダー（光子力研究所風）
+    st.markdown(f'''
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="color: #00ff88; font-size: 48px;">
+            {ICONS["bike"]}
+        </div>
+        <div>
+            <p class="main-header">cycleZ IMAGE GENERATOR</p>
+            <p class="sub-header">◆ PHOTON POWER IMAGING SYSTEM ◆</p>
+        </div>
+    </div>
+    ''', unsafe_allow_html=True)
 
     # API キーチェック
     gemini_key = os.getenv("GEMINI_API_KEY")
@@ -157,10 +456,18 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
 
     # サイドバー：設定
     with st.sidebar:
-        st.header("📋 基本設定")
+        st.markdown(f'''
+        <div class="section-header" style="color: #00ff88; border-color: #00ff88;">
+            {icon("settings", "#00ff88")} CONTROL PANEL
+        </div>
+        ''', unsafe_allow_html=True)
 
         # 店舗選択
-        st.subheader("🏪 店舗（背景）")
+        st.markdown(f'''
+        <div class="section-header">
+            {icon("store", "#ff3366")} LOCATION
+        </div>
+        ''', unsafe_allow_html=True)
         selected_location = st.selectbox(
             "店舗を選択",
             options=list(LOCATIONS.keys()),
@@ -185,7 +492,11 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
         st.divider()
 
         # スタッフ選択
-        st.subheader("👤 スタッフ")
+        st.markdown(f'''
+        <div class="section-header">
+            {icon("user", "#ff3366")} PILOT SELECT
+        </div>
+        ''', unsafe_allow_html=True)
         use_staff = st.checkbox("スタッフを登場させる", value=True)
 
         selected_staff = None
@@ -222,7 +533,11 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
     col1, col2 = st.columns([1, 1])
 
     with col1:
-        st.header("🎨 画像設定")
+        st.markdown(f'''
+        <div class="section-header" style="font-size: 1.4rem;">
+            {icon("palette", "#00aaff")} IMAGE PARAMETERS
+        </div>
+        ''', unsafe_allow_html=True)
 
         # シチュエーション
         selected_situation = st.selectbox(
@@ -233,10 +548,21 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
 
         # クライアント（登場人物）
         selected_client = st.selectbox(
-            "お客様（登場人物）",
+            "お客様タイプ",
             options=list(CLIENT_TYPES.keys()),
-            help="スタッフと一緒に登場する人物"
+            help="スタッフと一緒に登場する人物のタイプ"
         )
+
+        # お客様の人数選択（スタッフ以外）
+        if CLIENT_TYPES[selected_client]:
+            client_count = st.select_slider(
+                "お客様の人数",
+                options=[1, 2, 3, 4],
+                value=1,
+                help="スタッフ以外に登場させるお客様の人数（1〜4人）"
+            )
+        else:
+            client_count = 0
 
         # アスペクト比
         selected_ratio = st.selectbox(
@@ -247,7 +573,11 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
         st.divider()
 
         # 追加指示
-        st.subheader("✏️ 追加の指示（自由入力）")
+        st.markdown(f'''
+        <div class="section-header">
+            {icon("edit", "#00aaff")} ADDITIONAL COMMAND
+        </div>
+        ''', unsafe_allow_html=True)
         additional_prompt = st.text_area(
             "生成したい画像の詳細を日本語で入力",
             placeholder="例：GIOSのロードバイクを試乗している、STEMDESIGNのジャージを着ている、明るい雰囲気",
@@ -255,7 +585,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
         )
 
         # 詳細オプション
-        with st.expander("🔧 詳細オプション"):
+        with st.expander(f"⚙ ADVANCED OPTIONS"):
             include_text = st.checkbox("画像内にテキストを含める", value=False)
             if include_text:
                 image_text = st.text_input(
@@ -272,7 +602,11 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
             )
 
     with col2:
-        st.header("📝 生成プロンプトプレビュー")
+        st.markdown(f'''
+        <div class="section-header" style="font-size: 1.4rem;">
+            {icon("document", "#00aaff")} DATA PREVIEW
+        </div>
+        ''', unsafe_allow_html=True)
 
         # 入力情報のサマリー
         summary_parts = []
@@ -281,7 +615,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
         if use_staff and selected_staff:
             summary_parts.append(f"**スタッフ**: {selected_staff_name}")
         if CLIENT_TYPES[selected_client]:
-            summary_parts.append(f"**お客様**: {selected_client}")
+            summary_parts.append(f"**お客様**: {selected_client} × {client_count}人")
         summary_parts.append(f"**アスペクト比**: {selected_ratio}")
 
         st.info("\n\n".join(summary_parts))
@@ -292,11 +626,18 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
 
     st.divider()
 
-    # 生成ボタン
+    # 生成ボタン（パイルダーオン風）
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
     with col_btn2:
+        st.markdown('''
+        <div style="text-align: center; margin: 2rem 0;">
+            <p style="font-family: Orbitron, sans-serif; color: #ff3366; font-size: 0.8rem; letter-spacing: 3px; margin-bottom: 8px;">
+                ▼ INITIATE IMAGE GENERATION ▼
+            </p>
+        </div>
+        ''', unsafe_allow_html=True)
         generate_button = st.button(
-            "🚴 画像を生成する",
+            "⚡ PILDER ON!",
             use_container_width=True,
             type="primary"
         )
@@ -304,9 +645,13 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
     # 生成処理
     if generate_button:
         print("=" * 50)
-        print("🚴 生成ボタンが押されました")
+        print("⚡ PILDER ON! - 生成開始")
         print("=" * 50)
-        st.info("処理を開始します...")
+        st.markdown('''
+        <div class="info-box">
+            <span style="color: #00ff88;">◆</span> SYSTEM ACTIVATED - PROCESSING INITIATED
+        </div>
+        ''', unsafe_allow_html=True)
 
         # 入力データ収集
         generation_input = {
@@ -314,6 +659,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
             "situation": selected_situation,
             "staff": selected_staff_name if use_staff else None,
             "client": selected_client if CLIENT_TYPES[selected_client] else None,
+            "client_count": client_count if CLIENT_TYPES[selected_client] else 0,
             "aspect_ratio": ASPECT_RATIOS[selected_ratio],
             "resolution": "high",
             "additional_prompt": additional_prompt,
@@ -341,14 +687,14 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
                     "description": f"スタッフ{selected_staff_name}"
                 })
 
-        with st.spinner("🔄 プロンプトを最適化中..."):
+        with st.spinner("◈ PROMPT OPTIMIZATION IN PROGRESS..."):
             try:
                 print("📝 Claude APIを呼び出し中...")
                 # Claude APIでプロンプト変換
                 optimized_prompt = convert_prompt_with_claude(generation_input)
                 print(f"✅ プロンプト生成完了: {optimized_prompt[:100]}...")
 
-                with st.expander("📋 最適化されたプロンプト（確認用）"):
+                with st.expander("◆ OPTIMIZED PROMPT DATA"):
                     st.code(optimized_prompt, language="text")
 
             except Exception as e:
@@ -358,7 +704,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
                 traceback.print_exc()
                 return
 
-        with st.spinner("🎨 画像を生成中... (30秒〜1分程度かかります)"):
+        with st.spinner("◈ PHOTON POWER IMAGE SYNTHESIS... (30-60 SEC)"):
             try:
                 print("🎨 Gemini APIを呼び出し中...")
                 # Gemini APIで画像生成
@@ -370,15 +716,20 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
                 )
 
                 if result["success"]:
-                    st.success("✅ 画像生成が完了しました！")
+                    st.markdown('''
+                    <div class="success-box">
+                        <span style="font-size: 1.2rem;">◆ MISSION COMPLETE ◆</span><br>
+                        IMAGE GENERATION SUCCESSFUL
+                    </div>
+                    ''', unsafe_allow_html=True)
 
                     # 生成画像表示
-                    st.image(result["image_path"], caption="生成された画像", use_container_width=True)
+                    st.image(result["image_path"], caption="◆ GENERATED OUTPUT", use_container_width=True)
 
                     # ダウンロードボタン
                     with open(result["image_path"], "rb") as f:
                         st.download_button(
-                            label="📥 画像をダウンロード",
+                            label="⬇ DOWNLOAD IMAGE",
                             data=f,
                             file_name=f"cyclez_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png",
                             mime="image/png"
@@ -386,7 +737,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
 
                     # 生成情報
                     if result.get("text_response"):
-                        with st.expander("💬 Geminiからのコメント"):
+                        with st.expander("◆ AI SYSTEM RESPONSE"):
                             st.write(result["text_response"])
                 else:
                     st.error(f"画像生成エラー: {result.get('error', '不明なエラー')}")
@@ -396,12 +747,21 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
                 import traceback
                 st.code(traceback.format_exc())
 
-    # フッター
+    # フッター（光子力研究所風）
     st.divider()
     st.markdown("""
-    <div style="text-align: center; color: #666; font-size: 0.9rem;">
-        <p>cycleZ 画像生成ツール v1.0</p>
-        <p>Powered by Claude API & Gemini API</p>
+    <div style="text-align: center; padding: 2rem 0;">
+        <p style="font-family: 'Orbitron', sans-serif; color: #00ff88; font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 8px;">
+            ◆◆◆ PHOTON POWER LABORATORY ◆◆◆
+        </p>
+        <p style="font-family: 'Orbitron', sans-serif; color: #666; font-size: 0.7rem; letter-spacing: 2px;">
+            cycleZ IMAGE GENERATOR v1.0 | POWERED BY CLAUDE & GEMINI
+        </p>
+        <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 20px;">
+            <span style="color: #00ff88; font-size: 0.6rem;">▣ SYSTEM ONLINE</span>
+            <span style="color: #00aaff; font-size: 0.6rem;">▣ AI CORE ACTIVE</span>
+            <span style="color: #ff3366; font-size: 0.6rem;">▣ READY FOR LAUNCH</span>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 

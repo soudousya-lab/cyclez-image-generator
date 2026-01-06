@@ -11,6 +11,8 @@ from prompt_converter import convert_prompt_with_claude
 from image_generator import generate_image_with_gemini
 import base64
 from datetime import datetime
+import qrcode
+from io import BytesIO
 
 # 環境変数読み込み
 load_dotenv()
@@ -802,14 +804,65 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
                     # 生成画像表示
                     st.image(result["image_path"], caption="◆ GENERATED OUTPUT", use_container_width=True)
 
-                    # ダウンロードボタン
-                    with open(result["image_path"], "rb") as f:
-                        st.download_button(
-                            label="⬇ DOWNLOAD IMAGE",
-                            data=f,
-                            file_name=f"cyclez_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png",
-                            mime="image/png"
-                        )
+                    # ダウンロードボタンとiPhone転送
+                    col_dl1, col_dl2 = st.columns(2)
+
+                    with col_dl1:
+                        with open(result["image_path"], "rb") as f:
+                            image_data = f.read()
+                            st.download_button(
+                                label="⬇ DOWNLOAD IMAGE",
+                                data=image_data,
+                                file_name=f"cyclez_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png",
+                                mime="image/png",
+                                use_container_width=True
+                            )
+
+                    with col_dl2:
+                        # iPhone転送用のQRコード表示ボタン
+                        if st.button("📱 iPhoneに送る", use_container_width=True):
+                            st.session_state.show_qr = True
+                            st.session_state.qr_image_path = result["image_path"]
+
+                    # QRコード表示（同じネットワーク内でアクセス可能なURL）
+                    if st.session_state.get("show_qr") and st.session_state.get("qr_image_path"):
+                        st.markdown('''
+                        <div class="info-box" style="margin-top: 1rem;">
+                            <span style="color: #00aaff;">📱 iPhone転送方法</span>
+                        </div>
+                        ''', unsafe_allow_html=True)
+
+                        # Snapdrop QRコード生成
+                        qr = qrcode.QRCode(version=1, box_size=10, border=2)
+                        qr.add_data("https://snapdrop.net")
+                        qr.make(fit=True)
+                        qr_img = qr.make_image(fill_color="#00ff88", back_color="#0a0a0a")
+
+                        # QRコードをバイトに変換
+                        qr_buffer = BytesIO()
+                        qr_img.save(qr_buffer, format="PNG")
+                        qr_buffer.seek(0)
+
+                        col_qr1, col_qr2 = st.columns([1, 2])
+                        with col_qr1:
+                            st.image(qr_buffer, caption="Snapdrop QR", width=150)
+                        with col_qr2:
+                            st.markdown("""
+**📱 iPhoneへの転送手順:**
+
+1. **iPhoneでQRコードをスキャン**
+   → Snapdropが開きます
+
+2. **Surfaceのブラウザでも Snapdrop を開く**
+   → https://snapdrop.net
+
+3. **お互いのデバイスが表示される**
+   → iPhoneのアイコンをクリック
+
+4. **ダウンロードした画像を選択して送信**
+                            """)
+
+                        st.caption("※ 同じWi-Fiに接続している必要があります")
 
                     # 生成情報
                     if result.get("text_response"):

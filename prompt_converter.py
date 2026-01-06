@@ -141,7 +141,9 @@ def convert_prompt_with_claude(generation_input: Dict[str, Any]) -> str:
 
     Args:
         generation_input: 画像生成の入力情報
-            - location: 店舗名
+            - purpose: 用途 (promotional_staff, instagram, shop_interior, product, custom)
+            - location: 店舗名（オプション）
+            - use_background: 背景画像を使用するか
             - situation: シチュエーション
             - staff: スタッフ名（オプション）
             - client: クライアントタイプ（オプション）
@@ -158,6 +160,8 @@ def convert_prompt_with_claude(generation_input: Dict[str, Any]) -> str:
     client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
     # 入力情報を整理
+    purpose = generation_input.get("purpose", "custom")
+    use_background = generation_input.get("use_background", True)
     situation = generation_input.get("situation", "試乗相談")
     situation_info = SITUATION_PROMPTS.get(situation, SITUATION_PROMPTS["試乗相談"])
 
@@ -171,7 +175,7 @@ def convert_prompt_with_claude(generation_input: Dict[str, Any]) -> str:
 
     additional = generation_input.get("additional_prompt", "")
     image_text = generation_input.get("image_text")
-    location = generation_input.get("location", "cycleZ店舗")
+    location = generation_input.get("location", "cycleZ店舗") if use_background else None
 
     # Claude への指示
     system_prompt = f"""あなたは画像生成AI（Gemini）用のプロンプトを作成する専門家です。
@@ -200,10 +204,30 @@ cycleZというスポーツバイクショップのマーケティング画像�
 - スタイル指定（写真風、イラスト等）
 """
 
+    # 用途の説明
+    PURPOSE_DESCRIPTIONS = {
+        "promotional_staff": "スタッフ紹介用の宣材写真。スタッフの人柄や専門性が伝わる、プロフェッショナルで親しみやすい雰囲気。",
+        "instagram": "Instagram投稿用の写真。目を引く構図、ライフスタイル感、シェアしたくなるような魅力的な画像。",
+        "shop_interior": "店舗紹介用の写真。人物なしで店舗の魅力を伝える。清潔感があり、入りたくなる雰囲気。",
+        "product": "バイク・商品紹介用の写真。商品の魅力が際立つ構図。",
+        "custom": "カスタム設定。指定された条件に従って生成。"
+    }
+    purpose_desc = PURPOSE_DESCRIPTIONS.get(purpose, PURPOSE_DESCRIPTIONS["custom"])
+
     # ユーザーメッセージを構築
     user_message = f"""以下の条件で画像生成プロンプトを作成してください：
 
-【店舗】{location}（背景画像を参照して使用）
+【用途】{purpose_desc}
+
+【背景設定】"""
+
+    if use_background and location:
+        user_message += f"\n{location}の店舗背景画像を使用（参照画像として提供される）"
+    else:
+        user_message += "\n背景なし: シンプルで清潔感のある無地背景（白、ライトグレー、または淡いグラデーション）を使用"
+
+    user_message += f"""
+
 【シチュエーション】{situation}
 - シーン: {situation_info['scene']}
 - アクション: {situation_info['action']}
@@ -213,7 +237,14 @@ cycleZというスポーツバイクショップのマーケティング画像�
 """
 
     if staff_name:
-        user_message += f"- スタッフ: {staff_name}（参照画像のスタッフを登場させる。特徴を維持すること）\n"
+        staff_glasses = generation_input.get("staff_glasses")
+        glasses_instruction = ""
+        if staff_name == "西井" and staff_glasses:
+            if staff_glasses == "眼鏡あり":
+                glasses_instruction = " 【重要】このスタッフは眼鏡をかけている状態で描写すること。"
+            else:
+                glasses_instruction = " 【重要】このスタッフは眼鏡をかけていない状態で描写すること。"
+        user_message += f"- スタッフ: {staff_name}（複数の参照画像が提供されている場合、すべての画像から人物の特徴を学習し、正確に再現すること。顔の特徴、髪型、体型、肌の色など、すべての視覚的特徴を維持すること）{glasses_instruction}\n"
 
     if client_desc:
         if client_count == 1:
@@ -238,15 +269,25 @@ cycleZというスポーツバイクショップのマーケティング画像�
 "{image_text}" というテキストを画像内に含める
 """
 
-    user_message += """
-【重要な注意事項】
-1. 参照画像（背景・スタッフ）がある場合、それらを活かしたプロンプトにする
-2. 「この背景を使用」「このスタッフの外見を維持」という指示を含める
-3. 日本の自転車ショップらしい雰囲気を出す
-4. 自然光、清潔感、親しみやすさを強調
-5. 絶対にNGメーカー（Specialized, Trek, Colnago, GIANT, PINARELLO, Bianchi, Cannondale, MERIDA, ANCHOR）を使わない
-6. 絶対にNGウェア（Rapha, Pearl Izumi）を使わない
-7. レース系・ガチ勢の雰囲気を避ける
+    user_message += "\n【重要な注意事項】\n"
+
+    if use_background:
+        user_message += "1. 背景参照画像がある場合、「Use the provided background image as the setting」という指示を含める\n"
+    else:
+        user_message += "1. 背景なしの場合、「Use a clean, simple background (white, light gray, or soft gradient)」という指示を含める\n"
+
+    if staff_name:
+        user_message += """2. 「このスタッフの外見を維持」という指示を含める
+3. 【最重要】スタッフの複数参照画像がある場合、「Study all provided reference photos of this staff member from different angles to accurately reproduce their appearance」という指示を含める
+"""
+    else:
+        user_message += "2. スタッフなしの場合、店舗や商品の魅力を最大限に引き出す構図にする\n"
+
+    user_message += """4. 日本の自転車ショップらしい雰囲気を出す
+5. 自然光、清潔感、親しみやすさを強調
+6. 絶対にNGメーカー（Specialized, Trek, Colnago, GIANT, PINARELLO, Bianchi, Cannondale, MERIDA, ANCHOR）を使わない
+7. 絶対にNGウェア（Rapha, Pearl Izumi）を使わない
+8. レース系・ガチ勢の雰囲気を避ける
 """
 
     # Claude API 呼び出し
@@ -311,7 +352,7 @@ def build_simple_prompt(generation_input: Dict[str, Any]) -> str:
 
     # 参照画像の指示
     parts.append("Use the provided background image as the setting. "
-                "If staff reference images are provided, maintain their exact facial features and appearance.")
+                "If multiple staff reference images are provided, study all photos from different angles to accurately reproduce their exact facial features, hairstyle, skin tone, and overall appearance.")
 
     return " ".join(parts)
 

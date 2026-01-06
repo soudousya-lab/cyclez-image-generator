@@ -69,13 +69,31 @@ def generate_image_with_gemini(
                 "IMPORTANT: Use the provided background image as the exact setting/environment. "
                 "Maintain the architectural features, lighting, colors, and atmosphere of this space precisely."
             )
+        else:
+            # 背景画像がない場合はシンプルな背景を指定
+            image_instructions.append(
+                "BACKGROUND: Use a clean, simple, professional background. "
+                "Options: pure white, light gray, soft gradient, or minimal studio setting. "
+                "The background should not distract from the main subject."
+            )
 
         if staff_images:
-            image_instructions.append(
-                "CRITICAL: The staff member in the generated image MUST look EXACTLY like the person in the reference photo(s). "
-                "Maintain their exact facial features, face shape, hairstyle, skin tone, and overall appearance. "
-                "This is essential - the generated staff must be recognizable as the same person."
-            )
+            num_staff_images = len(staff_images)
+            if num_staff_images == 1:
+                image_instructions.append(
+                    "CRITICAL: The staff member in the generated image MUST look EXACTLY like the person in the reference photo. "
+                    "Maintain their exact facial features, face shape, hairstyle, skin tone, and overall appearance. "
+                    "This is essential - the generated staff must be recognizable as the same person."
+                )
+            else:
+                image_instructions.append(
+                    f"CRITICAL: You are provided with {num_staff_images} reference photos of the SAME staff member from different angles. "
+                    f"Study ALL {num_staff_images} photos carefully to understand their complete appearance: "
+                    "facial features from multiple angles, face shape, hairstyle, skin tone, body build, and distinguishing characteristics. "
+                    "The staff member in the generated image MUST look EXACTLY like this person. "
+                    "Use all reference photos together to create an accurate, recognizable representation. "
+                    "This is absolutely essential - the generated staff must be immediately recognizable as the same person shown in all reference photos."
+                )
 
         # プロンプトに日本人指定を追加
         full_prompt = prompt

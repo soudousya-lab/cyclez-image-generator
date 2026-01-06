@@ -462,46 +462,99 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
         </div>
         ''', unsafe_allow_html=True)
 
-        # 店舗選択
+        # 用途選択
         st.markdown(f'''
         <div class="section-header">
-            {icon("store", "#ff3366")} LOCATION
+            {icon("document", "#ff3366")} PURPOSE
         </div>
         ''', unsafe_allow_html=True)
-        selected_location = st.selectbox(
-            "店舗を選択",
-            options=list(LOCATIONS.keys()),
-            help="選択した店舗の背景画像が使用されます"
+
+        PURPOSE_OPTIONS = {
+            "宣材写真（スタッフ紹介）": "promotional_staff",
+            "Instagram投稿": "instagram",
+            "店舗紹介（人物なし）": "shop_interior",
+            "バイク・商品紹介": "product",
+            "カスタム": "custom"
+        }
+        selected_purpose = st.selectbox(
+            "用途を選択",
+            options=list(PURPOSE_OPTIONS.keys()),
+            help="用途に応じて最適な設定を適用します"
         )
 
-        # 背景画像選択
-        bg_dir = BACKGROUNDS_DIR / LOCATIONS[selected_location]
-        bg_images = get_available_images(bg_dir)
+        # 用途に応じたデフォルト設定
+        purpose_defaults = {
+            "宣材写真（スタッフ紹介）": {"use_staff": True, "use_bg": True, "use_client": False},
+            "Instagram投稿": {"use_staff": True, "use_bg": True, "use_client": True},
+            "店舗紹介（人物なし）": {"use_staff": False, "use_bg": True, "use_client": False},
+            "バイク・商品紹介": {"use_staff": False, "use_bg": True, "use_client": False},
+            "カスタム": {"use_staff": True, "use_bg": True, "use_client": True}
+        }
+        defaults = purpose_defaults.get(selected_purpose, purpose_defaults["カスタム"])
 
-        if bg_images:
-            selected_bg = st.selectbox(
-                "背景画像を選択",
-                options=bg_images,
-                format_func=lambda x: x.name
+        st.divider()
+
+        # 背景設定
+        st.markdown(f'''
+        <div class="section-header">
+            {icon("store", "#ff3366")} BACKGROUND
+        </div>
+        ''', unsafe_allow_html=True)
+
+        use_background = st.checkbox(
+            "背景画像を使用する",
+            value=defaults["use_bg"],
+            help="OFFにすると背景なし（シンプルな背景）で生成"
+        )
+
+        selected_bg = None
+        selected_location = "cycleZ店舗"
+
+        if use_background:
+            selected_location = st.selectbox(
+                "店舗を選択",
+                options=list(LOCATIONS.keys()),
+                help="選択した店舗の背景画像が使用されます"
             )
-            st.image(str(selected_bg), caption="選択中の背景", use_container_width=True)
+
+            # 背景画像選択
+            bg_dir = BACKGROUNDS_DIR / LOCATIONS[selected_location]
+            bg_images = get_available_images(bg_dir)
+
+            if bg_images:
+                selected_bg = st.selectbox(
+                    "背景画像を選択",
+                    options=bg_images,
+                    format_func=lambda x: x.name
+                )
+                # 背景プレビュー（目視確認用）
+                st.image(str(selected_bg), caption="選択中の背景", use_container_width=True)
+            else:
+                st.warning(f"背景画像がありません: {bg_dir}")
+                selected_bg = None
         else:
-            st.warning(f"背景画像がありません: {bg_dir}")
-            selected_bg = None
+            st.info("背景なし: シンプルな無地背景で生成されます")
 
         st.divider()
 
         # スタッフ選択
         st.markdown(f'''
         <div class="section-header">
-            {icon("user", "#ff3366")} PILOT SELECT
+            {icon("user", "#ff3366")} STAFF
         </div>
         ''', unsafe_allow_html=True)
-        use_staff = st.checkbox("スタッフを登場させる", value=True)
+        use_staff = st.checkbox(
+            "スタッフを登場させる",
+            value=defaults["use_staff"],
+            help="OFFにするとスタッフなしで生成"
+        )
 
         selected_staff = None
         staff_images = []
         selected_staff_name = None
+
+        # 西井の眼鏡オプション用の変数
+        nishii_glasses = None
 
         if use_staff:
             selected_staff_name = st.selectbox(
@@ -509,25 +562,39 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
                 options=list(STAFF.keys())
             )
 
+            # 西井選択時は眼鏡オプションを表示
+            if selected_staff_name == "西井":
+                nishii_glasses = st.radio(
+                    "眼鏡オプション",
+                    options=["眼鏡あり", "眼鏡なし"],
+                    horizontal=True,
+                    help="生成画像での眼鏡の有無を選択"
+                )
+
             staff_dir = STAFF_DIR / STAFF[selected_staff_name]
             staff_images = get_available_images(staff_dir)
 
             if staff_images:
                 selected_staff = st.multiselect(
-                    "参照画像を選択（複数可）",
+                    "参照画像を選択（複数選択で人物再現精度向上）",
                     options=staff_images,
                     format_func=lambda x: x.name,
-                    default=[staff_images[0]] if staff_images else []
+                    default=staff_images  # 全画像をデフォルトで選択
                 )
 
                 # 選択した画像のプレビュー
                 if selected_staff:
-                    cols = st.columns(min(len(selected_staff), 2))
-                    for i, img in enumerate(selected_staff[:2]):
-                        with cols[i]:
+                    st.caption(f"選択中: {len(selected_staff)}枚の参照画像")
+                    # 最大4枚を2行で表示
+                    preview_images = selected_staff[:4]
+                    cols = st.columns(min(len(preview_images), 2))
+                    for i, img in enumerate(preview_images):
+                        with cols[i % 2]:
                             st.image(str(img), caption=img.name, use_container_width=True)
             else:
                 st.warning(f"スタッフ画像がありません: {staff_dir}")
+        else:
+            st.info("スタッフなし: 店舗・商品のみの画像を生成")
 
     # メインエリア
     col1, col2 = st.columns([1, 1])
@@ -610,10 +677,16 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
 
         # 入力情報のサマリー
         summary_parts = []
-        summary_parts.append(f"**店舗**: {selected_location}")
-        summary_parts.append(f"**シチュエーション**: {selected_situation}")
+        summary_parts.append(f"**用途**: {selected_purpose}")
+        summary_parts.append(f"**背景**: {'あり（' + selected_location + '）' if use_background and selected_bg else 'なし（シンプル背景）'}")
         if use_staff and selected_staff:
-            summary_parts.append(f"**スタッフ**: {selected_staff_name}")
+            staff_info = f"{selected_staff_name}（参照{len(selected_staff)}枚）"
+            if selected_staff_name == "西井" and nishii_glasses:
+                staff_info += f" - {nishii_glasses}"
+            summary_parts.append(f"**スタッフ**: {staff_info}")
+        else:
+            summary_parts.append("**スタッフ**: なし")
+        summary_parts.append(f"**シチュエーション**: {selected_situation}")
         if CLIENT_TYPES[selected_client]:
             summary_parts.append(f"**お客様**: {selected_client} × {client_count}人")
         summary_parts.append(f"**アスペクト比**: {selected_ratio}")
@@ -655,9 +728,12 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
 
         # 入力データ収集
         generation_input = {
-            "location": selected_location,
+            "purpose": PURPOSE_OPTIONS[selected_purpose],
+            "location": selected_location if use_background else None,
+            "use_background": use_background,
             "situation": selected_situation,
             "staff": selected_staff_name if use_staff else None,
+            "staff_glasses": nishii_glasses if selected_staff_name == "西井" else None,
             "client": selected_client if CLIENT_TYPES[selected_client] else None,
             "client_count": client_count if CLIENT_TYPES[selected_client] else 0,
             "aspect_ratio": ASPECT_RATIOS[selected_ratio],
@@ -670,8 +746,8 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
         # 参照画像収集
         reference_images = []
 
-        # 背景画像
-        if selected_bg:
+        # 背景画像（use_backgroundがTrueの場合のみ）
+        if use_background and selected_bg:
             reference_images.append({
                 "path": selected_bg,
                 "type": "background",
